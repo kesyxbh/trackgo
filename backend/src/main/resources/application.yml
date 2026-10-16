@@ -1,0 +1,81 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: trackgo-backend
+
+  # Always answer in English. Otherwise validation messages follow the JVM / browser language
+  # while business errors stay English.
+  web:
+    locale: en
+    locale-resolver: fixed
+
+  # Default: in-memory H2 in PostgreSQL mode, so the project runs with nothing installed.
+  # Data is lost on restart. Use the "postgres" profile for a persistent database.
+  datasource:
+    url: jdbc:h2:mem:trackgo;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    # Keep lazy loading inside the service layer; entities never leak into the web layer.
+    open-in-view: false
+  h2:
+    console:
+      enabled: true   # http://localhost:8082/h2-console  (JDBC URL: jdbc:h2:mem:trackgo, user: sa, empty password)
+
+  # --- LLM connection (any OpenAI-compatible API; DeepSeek by default) -------------------------
+  # All three values come from environment variables, never from this file:
+  #   LLM_API_KEY   required to enable the assistant; blank/unset => "AI not configured"
+  #   LLM_BASE_URL  e.g. https://api.deepseek.com  or  https://api.openai.com/v1
+  #   LLM_MODEL     e.g. deepseek-flash  or  gpt-4o-mini
+  # The placeholder key lets the application start without a real one: Spring AI refuses to build
+  # its client with an empty key, but nothing is ever sent unless trackgo.ai.api-key is set.
+  ai:
+    openai:
+      api-key: ${LLM_API_KEY:not-configured}
+      base-url: ${LLM_BASE_URL:https://api.deepseek.com}
+      chat:
+        completions-path: /chat/completions
+        options:
+          model: ${trackgo.ai.model}
+          temperature: 0.2
+    # Fail fast instead of Spring AI's default of 10 retries with minutes of back-off: a customer
+    # waiting in a chat window would rather see "try again" after a couple of seconds.
+    retry:
+      max-attempts: 2
+      backoff:
+        initial-interval: 500ms
+        max-interval: 2s
+    # We only use chat; do not build the other model beans.
+    model:
+      embedding: none
+      image: none
+      audio:
+        speech: none
+        transcription: none
+      moderation: none
+
+trackgo:
+  seed:
+    enabled: true     # insert demo customers and riders when the tables are empty
+  simulator:
+    enabled: true     # background rider movement
+    tick-ms: 3000
+    speed-kmh: 120    # simulated speed; a 5 km trip takes about 2.5 minutes
+  dispatch:
+    enabled: true     # background automatic dispatching of pending deliveries
+    retry-ms: 3000
+  anomaly:
+    stale-seconds: 15 # a rider silent for this long is reported as stalled
+  ai:
+    api-key: ${LLM_API_KEY:}
+    model: ${LLM_MODEL:deepseek-flash}
+    max-tool-calls: 5
+    memory-messages: 20
+
+logging:
+  level:
+    com.trackgo: INFO

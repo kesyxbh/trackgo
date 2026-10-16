@@ -1,0 +1,14 @@
+target/
+HELP.md
+*.log
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Code walkthroughs: study notes that stay on this machine
+docs/*.md

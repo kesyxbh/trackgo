@@ -1,0 +1,18 @@
+# Activate with: mvn spring-boot:run -Dspring-boot.run.profiles=postgres
+# Create the database first:
+#   CREATE DATABASE trackgo;
+#   CREATE USER trackgo WITH PASSWORD 'trackgo';
+#   GRANT ALL PRIVILEGES ON DATABASE trackgo TO trackgo;
+#   \c trackgo
+#   GRANT ALL ON SCHEMA public TO trackgo;
+spring:
+  datasource:
+    url: ${TRACKGO_DB_URL:jdbc:postgresql://localhost:5432/trackgo}
+    username: ${TRACKGO_DB_USER:trackgo}
+    password: ${TRACKGO_DB_PASSWORD:trackgo}
+  jpa:
+    hibernate:
+      ddl-auto: update   # MVP only; schema migrations (Flyway) belong to a later version
+  h2:
+    console:
+      enabled: false

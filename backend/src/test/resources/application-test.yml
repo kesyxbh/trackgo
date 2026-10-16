@@ -1,0 +1,25 @@
+# Active for every integration test (see @IntegrationTest).
+spring:
+  datasource:
+    # A fresh in-memory database per Spring context, so cached contexts of different test classes
+    # never see each other's tables.
+    url: jdbc:h2:mem:trackgo-test-${random.uuid};MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+  h2:
+    console:
+      enabled: false
+  ai:
+    retry:
+      max-attempts: 1
+
+trackgo:
+  seed:
+    enabled: false      # each test builds exactly the data it needs
+  simulator:
+    enabled: false      # tests call SimulationService.tick() themselves, deterministically
+    speed-kmh: 600      # 0.5 km per tick, so a whole journey takes a handful of ticks
+  dispatch:
+    enabled: false      # tests call DispatchService directly
+  anomaly:
+    stale-seconds: 15
+  ai:
+    api-key: ""         # "not configured" unless a test class supplies one
